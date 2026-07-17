@@ -437,6 +437,9 @@
             </div>
             <input type="hidden" name="service" id="serviceInput" />
             <input type="hidden" name="urgency" id="urgencyInput" />
+            <input type="hidden" name="source" value="website" />
+            <input type="hidden" name="Priority" id="priorityInput" />
+            <input type="hidden" name="Status" value="New" />
           </form>
         </div>
       </div>
@@ -512,6 +515,12 @@
       let current = 1;
       const selections = {};
 
+      function getPriority(urgency) {
+        if (urgency === 'Emergency - active damage' || urgency === 'Today if possible') return 'High';
+        if (urgency === 'Within a few days') return 'Normal';
+        return 'Low';
+      }
+
       function showStep(step) {
         current = step;
         steps.forEach(el => el.classList.toggle('active', String(el.dataset.step) === String(step)));
@@ -551,6 +560,7 @@
         if (!name.value.trim()) { name.focus(); return alert('Please enter your name.'); }
         if (phone.value.replace(/\D/g, '').length < 10) { phone.focus(); return alert('Please enter a valid phone number.'); }
 
+        document.getElementById('priorityInput').value = getPriority(selections.urgency);
         const payload = Object.fromEntries(new FormData(form).entries());
         formError.hidden = true;
         submitButton.disabled = true;
