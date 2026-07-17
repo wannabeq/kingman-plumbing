@@ -511,7 +511,7 @@
       const progress = document.getElementById('progressBar');
       const submitButton = form.querySelector('button[type="submit"]');
       const formError = document.getElementById('formError');
-      const webhookUrl = 'https://script.google.com/macros/s/AKfycbzBnmXFso56LhBKVh4SfBxUivy24G4R0cUGtD1j3wdgusBDApRVAEWjXNVvQqhxReaSkA/exec';
+      const webhookUrl = 'https://hook.us2.make.com/nwmldrf6ebuagd235ibmgwv4gcg5u4ic';
       let current = 1;
       const selections = {};
 
@@ -570,8 +570,8 @@
           const response = await fetch(webhookUrl, {
             method: 'POST',
             mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload)
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams(payload)
           });
 
           window.dataLayer = window.dataLayer || [];
