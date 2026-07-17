@@ -145,6 +145,7 @@
     .back { background: #edf2f6; color: #405260; }
     .next { flex: 1; }
     .privacy { margin: 12px 0 0; font-size: 11px; color: #788694; text-align: center; }
+    .form-error { margin: 12px 0 0; color: #b42318; font-size: 13px; font-weight: 700; text-align: center; }
     .success { text-align: center; padding: 18px 4px 8px; }
     .success-icon { width: 64px; height: 64px; border-radius: 50%; background: #e7f8ef; color: var(--green); display: grid; place-items: center; font-size: 31px; font-weight: 900; margin: 0 auto 15px; }
 
@@ -422,6 +423,7 @@
               <div class="field"><label for="phone">Phone number</label><input id="phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="(928) 555-0123" required /></div>
               <div class="field"><label for="email">Email <span style="font-weight:500;color:#7b8995">(optional)</span></label><input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" /></div>
               <div class="form-actions"><button type="button" class="btn back" data-back>Back</button><button type="submit" class="btn btn-primary next">Request My Callback</button></div>
+              <p class="form-error" id="formError" role="alert" aria-live="polite" hidden></p>
               <p class="privacy">By submitting, you agree to receive calls or texts about your service request. Message and data rates may apply.</p>
             </div>
 
@@ -504,6 +506,9 @@
       const form = document.getElementById('leadForm');
       const steps = [...form.querySelectorAll('.step')];
       const progress = document.getElementById('progressBar');
+      const submitButton = form.querySelector('button[type="submit"]');
+      const formError = document.getElementById('formError');
+      const webhookUrl = 'https://hook.us2.make.com/nwmldrf6ebuagd235ibmgwv4gcg5u4ic';
       let current = 1;
       const selections = {};
 
@@ -547,15 +552,30 @@
         if (phone.value.replace(/\D/g, '').length < 10) { phone.focus(); return alert('Please enter a valid phone number.'); }
 
         const payload = Object.fromEntries(new FormData(form).entries());
-        console.log('Lead payload:', payload);
+        formError.hidden = true;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Sending...';
 
-        // Connect this payload to your CRM, webhook, Formspree, GoHighLevel, or serverless endpoint.
-        // Example:
-        // await fetch('/api/lead', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+        try {
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
 
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event: 'plumbing_lead_submitted', service: payload.service, urgency: payload.urgency, zip: payload.zip });
-        showStep('success');
+          if (!response.ok) throw new Error(`Webhook returned ${response.status}`);
+
+          window.dataLayer = window.dataLayer || [];
+          window.dataLayer.push({ event: 'plumbing_lead_submitted', service: payload.service, urgency: payload.urgency, zip: payload.zip });
+          showStep('success');
+        } catch (error) {
+          console.error('Unable to submit plumbing request:', error);
+          formError.textContent = 'We could not send your request. Please try again or call us directly.';
+          formError.hidden = false;
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = 'Request My Callback';
+        }
       });
     })();
   </script>
